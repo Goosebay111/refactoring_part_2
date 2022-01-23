@@ -1,4 +1,5 @@
-// pages 31-33
+// pages 36
+// CHANGE FUNCTION DECLARATION (124)
 
 import 'package:intl/intl.dart';
 
@@ -9,10 +10,59 @@ String statement(Invoices invoice) {
 }
 
 StatementData createStatementData(Invoices invoice) {
+  Play playFor(Performance data) {
+    return Plays.shows.firstWhere((play) => play.name == data.playID);
+  }
+
+  int amountFor(Performance data) {
+    int result = 0;
+    switch (playFor(data).type) {
+      case 'tragedy':
+        result = 40000;
+        if (data.audience > 30) {
+          result += 1000 * (data.audience - 30);
+        }
+        break;
+      case 'comedy':
+        result = 30000;
+        if (data.audience > 20) {
+          result += 10000 + 500 * (data.audience - 20);
+        }
+        result += 300 * data.audience;
+        break;
+      default:
+        throw 'unknown type: ${playFor(data).type}';
+    }
+    return result;
+  }
+
+  int volumeCreditsFor(Performance data) {
+    var result = 0;
+    result += data.audience - 30;
+    if ('comedy' == playFor(data).type) {
+      result += (data.audience / 5).floor();
+    }
+    return result;
+  }
+
+  int totalAmount(Invoices data) {
+    return data.performances
+        .map((perf) => amountFor(perf))
+        .reduce((a, b) => a + b);
+  }
+
+  int totalVolumeCredits(Invoices data) {
+    return data.performances
+        .map((perf) => volumeCreditsFor(perf))
+        .reduce((a, b) => a + b);
+  }
+
   StatementData statementData = StatementData(
     customer: invoice.customer,
     performances: invoice.performances
         .map((perfomance) => EnrichPerformance(
+              // 1C)
+              calculator: PerformanceCalculator(performance: perfomance),
               playId: perfomance.playID,
               audience: perfomance.audience,
               play: playFor(perfomance),
@@ -73,14 +123,24 @@ class Performance {
   int audience;
 }
 
+// 1B)
+class PerformanceCalculator {
+  PerformanceCalculator({required this.performance});
+  Performance performance;
+}
+
 class EnrichPerformance {
   EnrichPerformance({
+    required this.calculator,
     required this.playId,
     required this.audience,
     required this.play,
     required this.amount,
     required this.volumeCredits,
   });
+  //
+  // 1A)
+  PerformanceCalculator calculator;
   String playId;
   int audience;
   Play play;
@@ -99,53 +159,6 @@ class StatementData {
   List<EnrichPerformance> performances = [];
   int totalAmount;
   int totalVolumeCredits;
-}
-
-Play playFor(Performance data) {
-  return Plays.shows.firstWhere((play) => play.name == data.playID);
-}
-
-int amountFor(Performance data) {
-  int result = 0;
-  switch (playFor(data).type) {
-    case 'tragedy':
-      result = 40000;
-      if (data.audience > 30) {
-        result += 1000 * (data.audience - 30);
-      }
-      break;
-    case 'comedy':
-      result = 30000;
-      if (data.audience > 20) {
-        result += 10000 + 500 * (data.audience - 20);
-      }
-      result += 300 * data.audience;
-      break;
-    default:
-      throw 'unknown type: ${playFor(data).type}';
-  }
-  return result;
-}
-
-int volumeCreditsFor(Performance data) {
-  var result = 0;
-  result += data.audience - 30;
-  if ('comedy' == playFor(data).type) {
-    result += (data.audience / 5).floor();
-  }
-  return result;
-}
-
-int totalAmount(Invoices data) {
-  return data.performances
-      .map((perf) => amountFor(perf))
-      .reduce((a, b) => a + b);
-}
-
-int totalVolumeCredits(Invoices data) {
-  return data.performances
-      .map((perf) => volumeCreditsFor(perf))
-      .reduce((a, b) => a + b);
 }
 
 void main() {
