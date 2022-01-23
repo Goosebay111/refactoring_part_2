@@ -1,92 +1,32 @@
-// pages 27-30
-// PART II OF SPLITTING THE DATA.
-// pulling name from the plays object
+// pages 31-33
 
 import 'package:intl/intl.dart';
 
-String statement(Invoices invoice, Plays plays) {
-  // 1) moved
-  Play playFor(Performance data) {
-    var result = plays.plays.firstWhere((play) => play.name == data.playID);
-    return result;
-  }
+String statement(Invoices invoice) {
+  StatementData statementData = createStatementData(invoice);
 
-  // 2) moved
-  int amountFor(Performance data) {
-    int result = 0;
-    switch (playFor(data).type) {
-      case 'tragedy':
-        result = 40000;
-        if (data.audience > 30) {
-          result += 1000 * (data.audience - 30);
-        }
-        break;
-      case 'comedy':
-        result = 30000;
-        if (data.audience > 20) {
-          result += 10000 + 500 * (data.audience - 20);
-        }
-        result += 300 * data.audience;
-        break;
-      default:
-        throw 'unknown type: ${playFor(data).type}';
-    }
-    return result;
-  }
+  return renderPlainText(statementData);
+}
 
-  // 3) moved
-  int volumeCreditsFor(Performance data) {
-    var result = 0;
-    result += data.audience - 30;
-    if ('comedy' == playFor(data).type) {
-      result += (data.audience / 5).floor();
-    }
-    return result;
-  }
-
-  // 4) moved
-  int totalAmount(List<Performance> data) {
-    var result = 0;
-
-    for (var perf in data) {
-      result += amountFor(perf);
-    }
-    return result;
-  }
-
-  // 5) moved
-  int totalVolumeCredits(List<Performance> data) {
-    var result = 0;
-
-    for (var perf in data) {
-      result += volumeCreditsFor(perf);
-    }
-    return result;
-  }
-
-// added EnrichedPerformance class
-// added a new method to EnhancedPerformance class
-// used a map to load the values into the new classes.
-// same done for amount.
+StatementData createStatementData(Invoices invoice) {
   StatementData statementData = StatementData(
     customer: invoice.customer,
     performances: invoice.performances
-        .map((e) => EnrichPerformance(
-              playId: e.playID,
-              audience: e.audience,
-              play: playFor(e),
-              amount: amountFor(e),
-              volumeCredits: volumeCreditsFor(e),
+        .map((perfomance) => EnrichPerformance(
+              playId: perfomance.playID,
+              audience: perfomance.audience,
+              play: playFor(perfomance),
+              amount: amountFor(perfomance),
+              volumeCredits: volumeCreditsFor(perfomance),
             ))
         .toList(),
-    totalAmount: totalAmount(invoice.performances),
-    totalVolumeCredits: totalVolumeCredits(invoice.performances),
+    totalAmount: totalAmount(invoice),
+    totalVolumeCredits: totalVolumeCredits(invoice),
   );
-
-  return renderPlainText(statementData, plays);
+  return statementData;
 }
 
-String renderPlainText(StatementData data, Plays plays) {
+String renderPlainText(StatementData data) {
   var result = 'Statement for ${data.customer}\n';
 
   String usd(aNumber) {
@@ -105,8 +45,11 @@ String renderPlainText(StatementData data, Plays plays) {
 }
 
 class Plays {
-  Plays({required this.plays});
-  List<Play> plays = [];
+  static final List<Play> shows = [
+    Play(name: 'Hamlet', type: 'tragedy'),
+    Play(name: 'As You Like It', type: 'comedy'),
+    Play(name: 'Othello', type: 'tragedy'),
+  ];
 }
 
 class Play {
@@ -116,9 +59,12 @@ class Play {
 }
 
 class Invoices {
-  Invoices({required this.performances});
   String customer = 'BigCo';
-  List<Performance> performances = [];
+  List<Performance> performances = [
+    Performance(playID: 'Hamlet', audience: 55),
+    Performance(playID: 'As You Like It', audience: 35),
+    Performance(playID: 'Othello', audience: 40),
+  ];
 }
 
 class Performance {
@@ -155,22 +101,56 @@ class StatementData {
   int totalVolumeCredits;
 }
 
+Play playFor(Performance data) {
+  return Plays.shows.firstWhere((play) => play.name == data.playID);
+}
+
+int amountFor(Performance data) {
+  int result = 0;
+  switch (playFor(data).type) {
+    case 'tragedy':
+      result = 40000;
+      if (data.audience > 30) {
+        result += 1000 * (data.audience - 30);
+      }
+      break;
+    case 'comedy':
+      result = 30000;
+      if (data.audience > 20) {
+        result += 10000 + 500 * (data.audience - 20);
+      }
+      result += 300 * data.audience;
+      break;
+    default:
+      throw 'unknown type: ${playFor(data).type}';
+  }
+  return result;
+}
+
+int volumeCreditsFor(Performance data) {
+  var result = 0;
+  result += data.audience - 30;
+  if ('comedy' == playFor(data).type) {
+    result += (data.audience / 5).floor();
+  }
+  return result;
+}
+
+int totalAmount(Invoices data) {
+  var result = 0;
+  return data.performances
+      .map((perf) => amountFor(perf))
+      .reduce((a, b) => a + b);
+}
+
+int totalVolumeCredits(Invoices data) {
+  return data.performances
+      .map((perf) => volumeCreditsFor(perf))
+      .reduce((a, b) => a + b);
+}
+
 void main() {
-  List<Performance> invoiceList = [
-    Performance(playID: 'Hamlet', audience: 55),
-    Performance(playID: 'As You Like It', audience: 35),
-    Performance(playID: 'Othello', audience: 40),
-  ];
+  Invoices invoices = Invoices();
 
-  List<Play> playList = [
-    Play(name: 'Hamlet', type: 'tragedy'),
-    Play(name: 'As You Like It', type: 'comedy'),
-    Play(name: 'Othello', type: 'tragedy'),
-  ];
-
-  Invoices invoices = Invoices(performances: invoiceList);
-
-  Plays plays = Plays(plays: playList);
-
-  print(statement(invoices, plays));
+  print(statement(invoices));
 }
