@@ -137,7 +137,6 @@ int volumeCreditsFor(Performance data) {
 }
 
 int totalAmount(Invoices data) {
-  var result = 0;
   return data.performances
       .map((perf) => amountFor(perf))
       .reduce((a, b) => a + b);
