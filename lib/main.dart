@@ -1,5 +1,4 @@
 // pages 38.5 -
-// CHANGE FUNCTION DECLARATION II (124)
 
 import 'package:intl/intl.dart';
 
@@ -10,22 +9,15 @@ String statement(Invoices invoice) {
 }
 
 StatementData createStatementData(Invoices invoice) {
-  // 1A) move to class
-  // Play playFor(Performance data) {
-  //   return Plays.shows.firstWhere((play) => play.name == data.playID);
-  // }
-
   int amountFor(Performance data) {
-    PerformanceCalculator perfCalc =
-        // 1b) removed.
-        PerformanceCalculator(performance: data /*, play: playFor(data)*/);
+    PerformanceCalculator perfCalc = PerformanceCalculator(performance: data);
     return perfCalc.amount();
   }
 
   int volumeCreditsFor(Performance data) {
     PerformanceCalculator perfCalc =
         // 1b) removed.
-        PerformanceCalculator(performance: data /*, play: playFor(data)*/);
+        PerformanceCalculator(performance: data);
     return perfCalc.volumeCredit();
   }
 
@@ -44,17 +36,10 @@ StatementData createStatementData(Invoices invoice) {
   StatementData statementData = StatementData(
     customer: invoice.customer,
     performances: invoice.performances.map((performance) {
-      PerformanceCalculator perfCalc = PerformanceCalculator(
-          performance:
-              performance /*,
-        // 1b) removed.
-        play: playFor(performance),*/
-          );
+      PerformanceCalculator perfCalc =
+          PerformanceCalculator(performance: performance);
       return EnrichPerformance(
-        calculator:
-            // 1b) removed.
-            PerformanceCalculator(
-                performance: performance /*, play: perfCalc*/),
+        calculator: PerformanceCalculator(performance: performance),
         playId: performance.playID,
         audience: performance.audience,
         play: perfCalc.play,
@@ -117,14 +102,13 @@ class Performance {
 
 class PerformanceCalculator {
   PerformanceCalculator({required this.performance}) {
-    // 1a***) constructor change to lazy load the play class when called.
-    play = playFor(performance);
+    play = show(performance);
   }
 
   Performance performance;
   late Play play;
 
-  Play playFor(Performance data) {
+  Play show(Performance data) {
     return Plays.shows.firstWhere((play) => play.name == data.playID);
   }
 
