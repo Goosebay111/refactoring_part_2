@@ -1,5 +1,4 @@
-// pages 40-41
-// REPLACE CONDITIONAL WITH POLYMORPHISM.
+// FINAL CODE
 
 import 'package:intl/intl.dart';
 
@@ -9,8 +8,6 @@ String statement(Invoices invoice) {
   return renderPlainText(statementData);
 }
 
-// 1A) MOVED HERE SO BECAUSE THERE WERE TWO FUNCTIONS THAT NEEDED TO ACCESS IT.
-// 1A**) THIS METHOD IS THE SECRETE TO THE POLYMORPHISM.
 PerformanceCalculator createPerformanceCalculator(Performance perf) {
   var copy = PerformanceCalculator(perf);
   switch (copy.play.type) {
@@ -25,13 +22,11 @@ PerformanceCalculator createPerformanceCalculator(Performance perf) {
 
 StatementData createStatementData(Invoices invoice) {
   int amountFor(Performance data) {
-    // 1B) MODIFIED TO METHOD CALL.
     PerformanceCalculator perfCalc = createPerformanceCalculator(data);
     return perfCalc.amount();
   }
 
   int volumeCreditsFor(Performance data) {
-    // 1B) MODIFIED TO METHOD CALL.
     PerformanceCalculator perfCalc = createPerformanceCalculator(data);
     return perfCalc.volumeCredit();
   }
@@ -165,7 +160,6 @@ class PerformanceCalculator {
     return result;
   }
 
-// 1C) MODIFIED TO ENSURE THAT IF IT IS CALLED THAT IT WILL FAIL HARD.
   amount() {
     throw 'subclass responsibilty';
   }
