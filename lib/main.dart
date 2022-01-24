@@ -1,5 +1,5 @@
-// pages 39-
-// MAKING THE PERFORMANCE CALCULATOR POLYMORPHIC.
+// pages 40-41
+// REPLACE CONDITIONAL WITH POLYMORPHISM.
 
 import 'package:intl/intl.dart';
 
@@ -9,14 +9,30 @@ String statement(Invoices invoice) {
   return renderPlainText(statementData);
 }
 
+// 1A) MOVED HERE SO BECAUSE THERE WERE TWO FUNCTIONS THAT NEEDED TO ACCESS IT.
+// 1A**) THIS METHOD IS THE SECRETE TO THE POLYMORPHISM.
+PerformanceCalculator createPerformanceCalculator(Performance perf) {
+  var copy = PerformanceCalculator(perf);
+  switch (copy.play.type) {
+    case 'tragedy':
+      return TragedyCalculator(perf);
+    case 'comedy':
+      return ComedyCalculator(perf);
+    default:
+      throw 'unknown type: ${copy.play.type}';
+  }
+}
+
 StatementData createStatementData(Invoices invoice) {
   int amountFor(Performance data) {
-    PerformanceCalculator perfCalc = PerformanceCalculator(data);
+    // 1B) MODIFIED TO METHOD CALL.
+    PerformanceCalculator perfCalc = createPerformanceCalculator(data);
     return perfCalc.amount();
   }
 
   int volumeCreditsFor(Performance data) {
-    PerformanceCalculator perfCalc = PerformanceCalculator(data);
+    // 1B) MODIFIED TO METHOD CALL.
+    PerformanceCalculator perfCalc = createPerformanceCalculator(data);
     return perfCalc.volumeCredit();
   }
 
@@ -30,20 +46,6 @@ StatementData createStatementData(Invoices invoice) {
     return data.performances
         .map((perf) => volumeCreditsFor(perf))
         .reduce((a, b) => a + b);
-  }
-
-// 1) create method and make a switch statment. 2) create subclasses for each.
-// 3) override the subclasses for the specific calculations.
-  PerformanceCalculator createPerformanceCalculator(Performance perf) {
-    var copy = PerformanceCalculator(perf);
-    switch (copy.play.type) {
-      case 'tragedy':
-        return TragedyCalculator(perf);
-      case 'comedy':
-        return ComedyCalculator(perf);
-      default:
-        throw 'unknown type: ${copy.play.type}';
-    }
   }
 
   StatementData statementData = StatementData(
@@ -163,26 +165,9 @@ class PerformanceCalculator {
     return result;
   }
 
-  int amount() {
-    int result = 0;
-    switch (play.type) {
-      case 'tragedy':
-        result = 40000;
-        if (performance.audience > 30) {
-          result += 1000 * (performance.audience - 30);
-        }
-        break;
-      case 'comedy':
-        result = 30000;
-        if (performance.audience > 20) {
-          result += 10000 + 500 * (performance.audience - 20);
-        }
-        result += 300 * performance.audience;
-        break;
-      default:
-        throw 'unknown type: ${play.type}';
-    }
-    return result;
+// 1C) MODIFIED TO ENSURE THAT IF IT IS CALLED THAT IT WILL FAIL HARD.
+  amount() {
+    throw 'subclass responsibilty';
   }
 }
 
