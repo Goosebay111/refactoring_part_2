@@ -20,13 +20,11 @@ StatementData createStatementData(Invoices invoice) {
     return perfCalc.amount();
   }
 
+  // 1A) Copied and moved
   int volumeCreditsFor(Performance data) {
-    var result = 0;
-    result += data.audience - 30;
-    if ('comedy' == playFor(data).type) {
-      result += (data.audience / 5).floor();
-    }
-    return result;
+    PerformanceCalculator perfCalc =
+        PerformanceCalculator(performance: data, play: playFor(data));
+    return perfCalc.volumeCredit();
   }
 
   int totalAmount(Invoices data) {
@@ -55,7 +53,8 @@ StatementData createStatementData(Invoices invoice) {
         audience: performance.audience,
         play: perfCalc.play,
         amount: perfCalc.amount(),
-        volumeCredits: volumeCreditsFor(performance),
+        // changed to get the value from the new class method.
+        volumeCredits: perfCalc.volumeCredit(),
       );
     }).toList(),
     totalAmount: totalAmount(invoice),
@@ -116,7 +115,18 @@ class PerformanceCalculator {
   Performance performance;
   var play;
 
-//1 a**)
+  //1a**) renamed
+  int volumeCredit() {
+    int /* modified to int instead of var */ result = 0;
+    // changed data to performances to link to the variable
+    result += performance.audience - 30;
+    // 1a***) playFor was renamed to play to link with the variable.
+    if ('comedy' == play.type) {
+      result += (performance.audience / 5).floor();
+    }
+    return result;
+  }
+
   int amount() {
     int result = 0;
     switch (play.type) {
