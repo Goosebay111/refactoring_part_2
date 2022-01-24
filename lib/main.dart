@@ -1,4 +1,5 @@
-// pages 38.5 -
+// pages 39-
+// MAKING THE PERFORMANCE CALCULATOR POLYMORPHIC.
 
 import 'package:intl/intl.dart';
 
@@ -10,14 +11,12 @@ String statement(Invoices invoice) {
 
 StatementData createStatementData(Invoices invoice) {
   int amountFor(Performance data) {
-    PerformanceCalculator perfCalc = PerformanceCalculator(performance: data);
+    PerformanceCalculator perfCalc = PerformanceCalculator(data);
     return perfCalc.amount();
   }
 
   int volumeCreditsFor(Performance data) {
-    PerformanceCalculator perfCalc =
-        // 1b) removed.
-        PerformanceCalculator(performance: data);
+    PerformanceCalculator perfCalc = PerformanceCalculator(data);
     return perfCalc.volumeCredit();
   }
 
@@ -33,13 +32,26 @@ StatementData createStatementData(Invoices invoice) {
         .reduce((a, b) => a + b);
   }
 
+// 1) create method and make a switch statment. 2) create subclasses for each.
+// 3) override the subclasses for the specific calculations.
+  PerformanceCalculator createPerformanceCalculator(Performance perf) {
+    var copy = PerformanceCalculator(perf);
+    switch (copy.play.type) {
+      case 'tragedy':
+        return TragedyCalculator(perf);
+      case 'comedy':
+        return ComedyCalculator(perf);
+      default:
+        throw 'unknown type: ${copy.play.type}';
+    }
+  }
+
   StatementData statementData = StatementData(
     customer: invoice.customer,
     performances: invoice.performances.map((performance) {
-      PerformanceCalculator perfCalc =
-          PerformanceCalculator(performance: performance);
+      PerformanceCalculator perfCalc = createPerformanceCalculator(performance);
       return EnrichPerformance(
-        calculator: PerformanceCalculator(performance: performance),
+        calculator: PerformanceCalculator(performance),
         playId: performance.playID,
         audience: performance.audience,
         play: perfCalc.play,
@@ -100,12 +112,40 @@ class Performance {
   int audience;
 }
 
+class TragedyCalculator extends PerformanceCalculator {
+  TragedyCalculator(performance) : super(performance);
+
+  @override
+  int amount() {
+    int result = 40000;
+    if (performance.audience > 30) {
+      result += 1000 * (performance.audience - 30);
+    }
+    return result;
+  }
+}
+
+class ComedyCalculator extends PerformanceCalculator {
+  ComedyCalculator(performance) : super(performance);
+
+  @override
+  int amount() {
+    int result = 30000;
+    if (performance.audience > 20) {
+      result += 10000 + 500 * (performance.audience - 20);
+    }
+    result += 300 * performance.audience;
+    return result;
+  }
+}
+
 class PerformanceCalculator {
-  PerformanceCalculator({required this.performance}) {
+  PerformanceCalculator(this.performance) {
     play = show(performance);
   }
 
   Performance performance;
+
   late Play play;
 
   Play show(Performance data) {
