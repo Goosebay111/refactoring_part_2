@@ -1,4 +1,4 @@
-// pages 36
+// pages 36-
 // CHANGE FUNCTION DECLARATION (124)
 
 import 'package:intl/intl.dart';
@@ -59,17 +59,24 @@ StatementData createStatementData(Invoices invoice) {
 
   StatementData statementData = StatementData(
     customer: invoice.customer,
-    performances: invoice.performances
-        .map((perfomance) => EnrichPerformance(
-              // 1C)
-              calculator: PerformanceCalculator(performance: perfomance),
-              playId: perfomance.playID,
-              audience: perfomance.audience,
-              play: playFor(perfomance),
-              amount: amountFor(perfomance),
-              volumeCredits: volumeCreditsFor(perfomance),
-            ))
-        .toList(),
+    performances: invoice.performances.map((performance) {
+      // 1a) moved to here so can be inserted as a input variable.
+      PerformanceCalculator perfCalc = PerformanceCalculator(
+        performance: performance,
+        play: playFor(performance),
+      );
+      return EnrichPerformance(
+        calculator:
+            // 1b) inserted here so can be used as a input variable.
+            PerformanceCalculator(performance: performance, play: perfCalc),
+        playId: performance.playID,
+        audience: performance.audience,
+        // 1b) inserted.
+        play: perfCalc.play,
+        amount: amountFor(performance),
+        volumeCredits: volumeCreditsFor(performance),
+      );
+    }).toList(),
     totalAmount: totalAmount(invoice),
     totalVolumeCredits: totalVolumeCredits(invoice),
   );
@@ -123,10 +130,10 @@ class Performance {
   int audience;
 }
 
-// 1B)
 class PerformanceCalculator {
-  PerformanceCalculator({required this.performance});
+  PerformanceCalculator({required this.performance, required this.play});
   Performance performance;
+  var play;
 }
 
 class EnrichPerformance {
@@ -138,8 +145,6 @@ class EnrichPerformance {
     required this.amount,
     required this.volumeCredits,
   });
-  //
-  // 1A)
   PerformanceCalculator calculator;
   String playId;
   int audience;
