@@ -1,5 +1,5 @@
-// pages 37- 38.5
-// CHANGE FUNCTION DECLARATION (124)
+// pages 38.5 -
+// CHANGE FUNCTION DECLARATION II (124)
 
 import 'package:intl/intl.dart';
 
@@ -14,31 +14,10 @@ StatementData createStatementData(Invoices invoice) {
     return Plays.shows.firstWhere((play) => play.name == data.playID);
   }
 
-// 1a*) copy and move to PerformanceCalculator class.
   int amountFor(Performance data) {
-    // 1c) get values from class instead of in function.
     PerformanceCalculator perfCalc =
         PerformanceCalculator(performance: data, play: playFor(data));
-    return perfCalc.amount(data);
-    // int result = 0;
-    // switch (playFor(data).type) {
-    //   case 'tragedy':
-    //     result = 40000;
-    //     if (data.audience > 30) {
-    //       result += 1000 * (data.audience - 30);
-    //     }
-    //     break;
-    //   case 'comedy':
-    //     result = 30000;
-    //     if (data.audience > 20) {
-    //       result += 10000 + 500 * (data.audience - 20);
-    //     }
-    //     result += 300 * data.audience;
-    //     break;
-    //   default:
-    //     throw 'unknown type: ${playFor(data).type}';
-    // }
-    // return result;
+    return perfCalc.amount();
   }
 
   int volumeCreditsFor(Performance data) {
@@ -75,8 +54,7 @@ StatementData createStatementData(Invoices invoice) {
         playId: performance.playID,
         audience: performance.audience,
         play: perfCalc.play,
-        // 1b)
-        amount: perfCalc.amount(performance),
+        amount: perfCalc.amount(),
         volumeCredits: volumeCreditsFor(performance),
       );
     }).toList(),
@@ -139,7 +117,7 @@ class PerformanceCalculator {
   var play;
 
 //1 a**)
-  int amount(Performance data) {
+  int amount() {
     int result = 0;
     switch (play.type) {
       case 'tragedy':
