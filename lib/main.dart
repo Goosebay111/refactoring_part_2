@@ -1,4 +1,4 @@
-// pages 36-
+// pages 37- 38.5
 // CHANGE FUNCTION DECLARATION (124)
 
 import 'package:intl/intl.dart';
@@ -14,26 +14,31 @@ StatementData createStatementData(Invoices invoice) {
     return Plays.shows.firstWhere((play) => play.name == data.playID);
   }
 
+// 1a*) copy and move to PerformanceCalculator class.
   int amountFor(Performance data) {
-    int result = 0;
-    switch (playFor(data).type) {
-      case 'tragedy':
-        result = 40000;
-        if (data.audience > 30) {
-          result += 1000 * (data.audience - 30);
-        }
-        break;
-      case 'comedy':
-        result = 30000;
-        if (data.audience > 20) {
-          result += 10000 + 500 * (data.audience - 20);
-        }
-        result += 300 * data.audience;
-        break;
-      default:
-        throw 'unknown type: ${playFor(data).type}';
-    }
-    return result;
+    // 1c) get values from class instead of in function.
+    PerformanceCalculator perfCalc =
+        PerformanceCalculator(performance: data, play: playFor(data));
+    return perfCalc.amount(data);
+    // int result = 0;
+    // switch (playFor(data).type) {
+    //   case 'tragedy':
+    //     result = 40000;
+    //     if (data.audience > 30) {
+    //       result += 1000 * (data.audience - 30);
+    //     }
+    //     break;
+    //   case 'comedy':
+    //     result = 30000;
+    //     if (data.audience > 20) {
+    //       result += 10000 + 500 * (data.audience - 20);
+    //     }
+    //     result += 300 * data.audience;
+    //     break;
+    //   default:
+    //     throw 'unknown type: ${playFor(data).type}';
+    // }
+    // return result;
   }
 
   int volumeCreditsFor(Performance data) {
@@ -60,20 +65,18 @@ StatementData createStatementData(Invoices invoice) {
   StatementData statementData = StatementData(
     customer: invoice.customer,
     performances: invoice.performances.map((performance) {
-      // 1a) moved to here so can be inserted as a input variable.
       PerformanceCalculator perfCalc = PerformanceCalculator(
         performance: performance,
         play: playFor(performance),
       );
       return EnrichPerformance(
         calculator:
-            // 1b) inserted here so can be used as a input variable.
             PerformanceCalculator(performance: performance, play: perfCalc),
         playId: performance.playID,
         audience: performance.audience,
-        // 1b) inserted.
         play: perfCalc.play,
-        amount: amountFor(performance),
+        // 1b)
+        amount: perfCalc.amount(performance),
         volumeCredits: volumeCreditsFor(performance),
       );
     }).toList(),
@@ -134,6 +137,29 @@ class PerformanceCalculator {
   PerformanceCalculator({required this.performance, required this.play});
   Performance performance;
   var play;
+
+//1 a**)
+  int amount(Performance data) {
+    int result = 0;
+    switch (play.type) {
+      case 'tragedy':
+        result = 40000;
+        if (performance.audience > 30) {
+          result += 1000 * (performance.audience - 30);
+        }
+        break;
+      case 'comedy':
+        result = 30000;
+        if (performance.audience > 20) {
+          result += 10000 + 500 * (performance.audience - 20);
+        }
+        result += 300 * performance.audience;
+        break;
+      default:
+        throw 'unknown type: ${play.type}';
+    }
+    return result;
+  }
 }
 
 class EnrichPerformance {
