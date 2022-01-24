@@ -10,20 +10,22 @@ String statement(Invoices invoice) {
 }
 
 StatementData createStatementData(Invoices invoice) {
-  Play playFor(Performance data) {
-    return Plays.shows.firstWhere((play) => play.name == data.playID);
-  }
+  // 1A) move to class
+  // Play playFor(Performance data) {
+  //   return Plays.shows.firstWhere((play) => play.name == data.playID);
+  // }
 
   int amountFor(Performance data) {
     PerformanceCalculator perfCalc =
-        PerformanceCalculator(performance: data, play: playFor(data));
+        // 1b) removed.
+        PerformanceCalculator(performance: data /*, play: playFor(data)*/);
     return perfCalc.amount();
   }
 
-  // 1A) Copied and moved
   int volumeCreditsFor(Performance data) {
     PerformanceCalculator perfCalc =
-        PerformanceCalculator(performance: data, play: playFor(data));
+        // 1b) removed.
+        PerformanceCalculator(performance: data /*, play: playFor(data)*/);
     return perfCalc.volumeCredit();
   }
 
@@ -43,17 +45,20 @@ StatementData createStatementData(Invoices invoice) {
     customer: invoice.customer,
     performances: invoice.performances.map((performance) {
       PerformanceCalculator perfCalc = PerformanceCalculator(
-        performance: performance,
-        play: playFor(performance),
-      );
+          performance:
+              performance /*,
+        // 1b) removed.
+        play: playFor(performance),*/
+          );
       return EnrichPerformance(
         calculator:
-            PerformanceCalculator(performance: performance, play: perfCalc),
+            // 1b) removed.
+            PerformanceCalculator(
+                performance: performance /*, play: perfCalc*/),
         playId: performance.playID,
         audience: performance.audience,
         play: perfCalc.play,
         amount: perfCalc.amount(),
-        // changed to get the value from the new class method.
         volumeCredits: perfCalc.volumeCredit(),
       );
     }).toList(),
@@ -111,16 +116,23 @@ class Performance {
 }
 
 class PerformanceCalculator {
-  PerformanceCalculator({required this.performance, required this.play});
-  Performance performance;
-  var play;
+  PerformanceCalculator({required this.performance}) {
+    // 1a***) constructor change to lazy load the play class when called.
+    play = playFor(performance);
+  }
 
-  //1a**) renamed
+  Performance performance;
+  late Play play;
+
+  Play playFor(Performance data) {
+    return Plays.shows.firstWhere((play) => play.name == data.playID);
+  }
+
   int volumeCredit() {
-    int /* modified to int instead of var */ result = 0;
-    // changed data to performances to link to the variable
+    int result = 0;
+
     result += performance.audience - 30;
-    // 1a***) playFor was renamed to play to link with the variable.
+
     if ('comedy' == play.type) {
       result += (performance.audience / 5).floor();
     }
